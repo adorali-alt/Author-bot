@@ -1,13 +1,15 @@
-import functools
-from functools import reduce
+import math
 import os
+from concurrent.futures import ThreadPoolExecutor
+from itertools import repeat
+
 from flask import Flask
 import requests
 import json
 import random
 
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, session, url_for
+    Blueprint, flash, render_template, request
 )
 
 bp = Blueprint('generate', __name__, url_prefix='/')
@@ -15,6 +17,7 @@ bp = Blueprint('generate', __name__, url_prefix='/')
 GUT_URL_TEMPLATE = "http://gutendex.com/books?search="
 
 END_TOKEN = "***END***"
+
 
 def create_app(test_config=None):
     # create and configure the app
@@ -93,13 +96,11 @@ class Dictogram(dict):
 
 def token_ends_sentence(token):
     has_punctuation = token.endswith(".") or token.endswith("!") or token.endswith("?")
-    is_a_title = token == "Mr." or token == "Mrs." or token == "Ms." or token == "Dr."
+    is_a_title = token == "Mr." or token == "Mrs." or token == "Ms." or token == "Dr." or token == "St."
     return has_punctuation and (not is_a_title)
 
 
-def make_higher_order_markov_model(order, data):
-    markov_model = dict()
-
+def load_higher_order_markov_model(markov_model, order, data):
     for i in range(0, len(data)-order):
         # Check for end tokens to add
         for j in range(i, i+order):
@@ -110,10 +111,9 @@ def make_higher_order_markov_model(order, data):
         # Add to the dictionary
         if window in markov_model:
             # We have to just append to the existing Dictogram
-            markov_model[window].update([data[i+order]])
+            markov_model[window].update([data[i + order]])
         else:
-            markov_model[window] = Dictogram([data[i+order]])
-    return markov_model
+            markov_model[window] = Dictogram([data[i + order]])
 
 
 def generate_random_start(model):
@@ -148,32 +148,50 @@ def generate_random_paragraph(model):
 # FILE 3
 
 
-def find_text(books, query_name):
-    for book in books:
-        # check author
-        query_names = query_name.lower().split(" ")
-        # assume its invalid
-        is_written_by_any_author = False
-        for actual_author in book["authors"]:
-            actual_author_name = actual_author["name"].lower()
-            # assume this author wrote it
-            is_written_by_this_author = True
-            for part in query_names:
-                # falses bubble up
-                is_written_by_this_author = is_written_by_this_author and (part in actual_author_name)
-            # trues bubble up
-            is_written_by_any_author = is_written_by_any_author or is_written_by_this_author
+def find_text(book, query_name):
+    # check author
+    query_names = query_name.split()
+    # assume its invalid
+    is_written_by_any_author = False
 
-        if is_written_by_any_author and (book['media_type'] == "Text"):
-            if 'text/plain' in book['formats']:
-                url = book['formats']["text/plain"]
-            elif 'text/plain; charset=utf-8' in book['formats']:
-                url = book['formats']['text/plain; charset=utf-8']
+    # check author
+    for actual_author in book["authors"]:
+        actual_author_name = actual_author["name"].lower()
+        # assume this author wrote it
+        is_written_by_this_author = True
+        for part in query_names:
+            # falses bubble up
+            is_written_by_this_author = is_written_by_this_author and (part in actual_author_name)
+        # trues bubble up
+        is_written_by_any_author = is_written_by_any_author or is_written_by_this_author
 
-            if url.endswith('.txt'):
-                response = requests.get(url).content.decode("utf-8", "ignore")
-                return response
+    # check language
+    is_in_english = "en" in book["languages"]
 
+    if is_written_by_any_author and is_in_english and (book['media_type'] == "Text"):
+        url = 'dummy'
+        if 'text/plain' in book['formats']:
+            url = book['formats']["text/plain"]
+        elif 'text/plain; charset=utf-8' in book['formats']:
+            url = book['formats']['text/plain; charset=utf-8']
+
+        if url.endswith('.txt'):
+            response = requests.get(url).content.decode("utf-8", "ignore")
+            return response
+
+
+def chunk_up_text(raw_text):
+    sliced_raw_text = []
+    raw_text_tokens = raw_text.split()
+    step = math.floor(len(raw_text_tokens) / 50)
+    for i in range(50):
+        print(i)
+        start_index = step * i
+        end_index = min(start_index + step, len(raw_text_tokens))
+        print(start_index, end_index)
+        sliced_raw_text.append(raw_text_tokens[start_index:end_index])
+
+    return sliced_raw_text
 
 @bp.route('/', methods=('GET', 'POST'))
 def empty():
@@ -189,14 +207,26 @@ def empty():
         try:
             response = requests.get(GUT_URL_TEMPLATE + query).content
 
-            # return first valid book
-            raw_text = find_text(json.loads(response.decode("utf-8"))["results"], author_name.lower())
+            # return all valid books (valid = authored by the given name and in english)
+            books = json.loads(response.decode("utf-8"))["results"]
+            raw_text = ''
+            with ThreadPoolExecutor() as executor:
+                for result in executor.map(find_text, books, repeat(author_name.lower())):
+                    if result is not None:
+                        raw_text += result
+
+            sliced_raw_text = chunk_up_text(raw_text)
 
             # make model from text
-            model = make_higher_order_markov_model(1, raw_text.split())
-            speech = generate_random_paragraph(model)
+            markov_model = dict()
+            with ThreadPoolExecutor() as executor:
+                executor.map(load_higher_order_markov_model, repeat(markov_model), repeat(1), sliced_raw_text)
+
+            speech = generate_random_paragraph(markov_model)
+
         except:
-            flash("I can't read anything from this author. Try someone else, or perhaps check your spelling. We all make mistakes.")
+            flash("I can't read anything from this author. Try someone else, or perhaps check your spelling. We all "
+                  "make mistakes.")
 
     return render_template('empty.html', sample={"author_name": author_name, "speech": speech})
 
