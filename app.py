@@ -43,6 +43,8 @@ def create_app(test_config=None):
 
     return app
 
+app = create_app()
+
 class Dictogram(dict):
     def __init__(self, iterable=None):
         """Initialize this histogram as a new dict; update with given items"""
