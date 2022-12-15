@@ -43,7 +43,6 @@ def create_app(test_config=None):
 
     return app
 
-app = create_app()
 
 class Dictogram(dict):
     def __init__(self, iterable=None):
@@ -204,3 +203,6 @@ def empty():
             flash("I can't read anything from this author. Try someone else, or perhaps check your spelling. We all make mistakes.")
 
     return render_template('empty.html', sample={"author_name": author_name, "speech": speech})
+
+
+app = create_app()
