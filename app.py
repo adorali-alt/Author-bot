@@ -187,11 +187,7 @@ def empty():
         query = author_name.lower().replace(' ', '%20')
         # fetch book list
         try:
-
-            speech = "trying"
             response = requests.get(GUT_URL_TEMPLATE + query).content
-
-            speech = "tried"
 
             # return first valid book
             raw_text = find_text(json.loads(response.decode("utf-8"))["results"], author_name.lower())
