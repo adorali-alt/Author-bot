@@ -7,6 +7,7 @@ from flask import Flask
 import requests
 import json
 import random
+import time
 
 from flask import (
     Blueprint, flash, render_template, request
@@ -101,13 +102,13 @@ def token_ends_sentence(token):
 
 
 def load_higher_order_markov_model(markov_model, order, data):
-    for i in range(0, len(data)-order):
+    for i in range(0, len(data) - order):
         # Check for end tokens to add
-        for j in range(i, i+order):
+        for j in range(i, i + order):
             if token_ends_sentence(data[j]):
-                data.insert(j+1, END_TOKEN)
+                data.insert(j + 1, END_TOKEN)
         # Create the window
-        window = tuple(data[i: i+order])
+        window = tuple(data[i: i + order])
         # Add to the dictionary
         if window in markov_model:
             # We have to just append to the existing Dictogram
@@ -193,6 +194,7 @@ def chunk_up_text(raw_text):
 
     return sliced_raw_text
 
+
 @bp.route('/', methods=('GET', 'POST'))
 def empty():
     author_name = "Author"
@@ -205,9 +207,13 @@ def empty():
         query = author_name.lower().replace(' ', '%20')
         # fetch book list
         try:
+            start_time = time.time()
             response = requests.get(GUT_URL_TEMPLATE + query).content
+            end_time = time.time()
+            print('timed operation : get from gutendex : {}'.format(end_time - start_time))
 
             # return all valid books (valid = authored by the given name and in english)
+            start_time = time.time()
             books = json.loads(response.decode("utf-8"))["results"]
             raw_text = ''
             with ThreadPoolExecutor() as executor:
@@ -215,12 +221,21 @@ def empty():
                     if result is not None:
                         raw_text += result
 
+            end_time = time.time()
+            print('timed operation : load books : {}'.format(end_time - start_time))
+
+            start_time = time.time()
             sliced_raw_text = chunk_up_text(raw_text)
+            end_time = time.time()
+            print('timed operation : chunk data : {}'.format(end_time - start_time))
 
             # make model from text
+            start_time = time.time()
             markov_model = dict()
             with ThreadPoolExecutor() as executor:
                 executor.map(load_higher_order_markov_model, repeat(markov_model), repeat(1), sliced_raw_text)
+            end_time = time.time()
+            print('timed operation : generate model : {}'.format(end_time - start_time))
 
             speech = generate_random_paragraph(markov_model)
 
