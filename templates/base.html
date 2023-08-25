@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css?family=Crimson+Text:600|Noto+Serif|Special+Elite" rel="stylesheet">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.7.0.min.js"></script>  
 </head>
 
 <body class="container">
@@ -17,9 +18,10 @@
 
 <div class="content">
 
-    {% for message in get_flashed_messages() %}
-    <div class="flash">{{ message }}</div>
-    {% endfor %}
+    <div class="flash">
+        <p class="instruc">Enter an author whose work is on Project Gutenberg. For best results, use their full name, exact spelling, and choose someone from the turn of the century or before. I will use a Markov model to generate a nonsense paragraph with your author's rhythm and word choice. To give the best impression, I'll get as much material from your author as possible, so it could take as long as 20 seconds to load.
+        </p>
+    </div>
 
     <!-- author submission form -->
     <form method="POST">
@@ -30,7 +32,34 @@
     <div class="line"></div>
 
     <!-- resulting text -->
-    {% block content %}{% endblock %}
+    <div class="message-from-author"></div>
+
+    <script type="text/javascript">
+
+        // function runPyScript(input){
+        //     var jqXHR = $.ajax({
+        //         type: "POST",
+        //         url: "/login",
+        //         async: false,
+        //         data: { mydata: input }
+        //     });
+
+        //     return jqXHR.responseText;
+        // }
+
+        // $('#submitbutton').click(function(){
+        //     datatosend = 'this is my matrix';
+        //     result = runPyScript(datatosend);
+        //     console.log('Got back ' + result);
+        // });
+
+        var message = document.getElementsByClassName("message-from-author")[0];
+        var p = document.createElement("p");
+        p.innerHTML = "hi you";
+        message.appendChild(p);
+
+    </script>
+
 
 </div>
 
