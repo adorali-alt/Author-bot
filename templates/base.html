@@ -36,28 +36,26 @@
 
     <script type="text/javascript">
 
-        // function runPyScript(input){
-        //     var jqXHR = $.ajax({
-        //         type: "POST",
-        //         url: "/login",
-        //         async: false,
-        //         data: { mydata: input }
-        //     });
+        $('#button').click(function(){
+            datatosend = '...';
+            result = getFromLearningModel(datatosend);
+            var message = document.getElementsByClassName("message-from-author")[0];
+            var p = document.createElement("p");
+            p.innerHTML = result["speech"];
+            message.appendChild(p);
+        });
 
-        //     return jqXHR.responseText;
-        // }
+        function getFromLearningModel(input){
+            var jqXHR = $.ajax({
+                type: "POST",
+                url: "/submit",
+                async: false,
+                data: { mydata: input }
+            });
 
-        // $('#submitbutton').click(function(){
-        //     datatosend = 'this is my matrix';
-        //     result = runPyScript(datatosend);
-        //     console.log('Got back ' + result);
-        // });
-
-        var message = document.getElementsByClassName("message-from-author")[0];
-        var p = document.createElement("p");
-        p.innerHTML = "hi you";
-        message.appendChild(p);
-
+            return jqXHR.responseText;
+        }
+        
     </script>
 
 

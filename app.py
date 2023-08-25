@@ -195,7 +195,7 @@ def chunk_up_text(raw_text):
     return sliced_raw_text
 
 
-@bp.route('/', methods=('GET', 'POST'))
+@bp.route('/submit', methods=('GET', 'POST'))
 def empty():
     author_name = "Author"
     speech = "..."
