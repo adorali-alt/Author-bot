@@ -18,10 +18,8 @@
 
 <div class="content">
 
-    <div class="flash">
-        <p class="instruc">Enter an author whose work is on Project Gutenberg. For best results, use their full name, exact spelling, and choose someone from the turn of the century or before. I will use a Markov model to generate a nonsense paragraph with your author's rhythm and word choice. To give the best impression, I'll get as much material from your author as possible, so it could take as long as 20 seconds to load.
-        </p>
-    </div>
+    <p class="instruc"> Instructions: Enter an author whose work is on Project Gutenberg. For best results, use their full name, exact spelling, and choose someone from the turn of the century or before, such as Homer or Leo Tolstoy. I will use a Markov model to generate a nonsense paragraph with your author's rhythm and word choice. Loading may take a couple seconds.
+    </p>
 
     <!-- author submission form -->
     <form method="POST">
@@ -32,37 +30,14 @@
     <div class="line"></div>
 
     <!-- resulting text -->
-    <div class="message-from-author"></div>
+    <div class="message-from-author">{% block content %}{% endblock %}</div>
 
-    <script type="text/javascript">
-
-        $('#button').click(function(){
-            datatosend = '...';
-            result = getFromLearningModel(datatosend);
-            var message = document.getElementsByClassName("message-from-author")[0];
-            var p = document.createElement("p");
-            p.innerHTML = result["speech"];
-            message.appendChild(p);
-        });
-
-        function getFromLearningModel(input){
-            console.log(input);
-            var jqXHR = $.ajax({
-                type: "POST",
-                url: "/submit",
-                data: { mydata: input }
-            });
-
-            return jqXHR.responseText;
-        }
-        
-    </script>
-
+    <div class="line"></div>
 
 </div>
 
 <footer>
-    <small>Created using Flask, Project Gutenberg, and Gutendex</small>
+    <small>Created using Flask, Markovify, Project Gutenberg, and Gutendex</small>
 </footer>
 </body>
 </html>
