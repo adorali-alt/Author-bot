@@ -16,6 +16,10 @@ GUT_URL_TEMPLATE = "http://gutendex.com/books?search="
 # prevents insane load times from prolific writers
 CORPUS_CHAR_LIMIT = 20000
 
+# marks the beginning / end of copyright sections in gutenberg ebooks
+COPYRIGHT_START_SIGNAL = "*** END OF THIS PROJECT GUTENBERG EBOOK"
+BOOK_START_SIGNAL = "*** START OF THIS PROJECT GUTENBERG EBOOK"
+
 
 def create_app(test_config=None):
     # create and configure the app
@@ -62,12 +66,17 @@ def find_text(books, target_author):
         # get book's text
         try:
             if book_is_match and (book['media_type'] == "Text") and ("en" in book["languages"]):
+                b = ""
                 if 'text/plain; charset=us-ascii' in book['formats']:
-                    response += requests.get(book["formats"]['text/plain; charset=us-ascii']).content.decode("ascii", "ignore")
+                    b += requests.get(book["formats"]['text/plain; charset=us-ascii']).content.decode("ascii", "ignore")
                 elif 'text/plain' in book['formats']: 
-                    response += requests.get(book["formats"]['text/plain']).content.decode("utf-8", "ignore")
+                    b += requests.get(book["formats"]['text/plain']).content.decode("utf-8", "ignore")
                 elif 'text/plain; charset=utf-8' in book['formats']:
-                    response += requests.get(book["formats"]['text/plain; charset=us-ascii']).content.decode("utf-8", "ignore")
+                    b += requests.get(book["formats"]['text/plain; charset=us-ascii']).content.decode("utf-8", "ignore")
+
+                # clean up data
+                if b is not "":
+                    response += b[b.find(BOOK_START_SIGNAL):b.find(COPYRIGHT_START_SIGNAL)]
         except:
             pass # when text grabs fail, just keep going
 
@@ -105,17 +114,10 @@ def getFromLearningModel():
                 # terminates run on sentences 
                 speech += " " + text_model.make_short_sentence(400)
 
-            print(speech)
-
         except:
             speech += "I can't read anything from "+author_name+". Try someone else, or perhaps check the spelling."
 
-    # result = '{"authorName": '+author_name.title()+', "speech": '+speech+'}'
-    # resp = make_response(jsonify(result), 200)
-    # resp.headers['Content-Type'] = "application/json"
-    # print(resp)
     return render_template('empty.html', sample={"author_name": author_name.title(), "speech": speech})
-    # return render_template('base.html', message='') data=result, 
  
 
 app = create_app()
