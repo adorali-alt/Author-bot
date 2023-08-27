@@ -14,11 +14,11 @@ bp = Blueprint('generate', __name__, url_prefix='/')
 GUT_URL_TEMPLATE = "http://gutendex.com/books?search="
 
 # prevents insane load times from prolific writers
-CORPUS_CHAR_LIMIT = 20000
+CORPUS_CHAR_LIMIT = 2000000
 
 # marks the beginning / end of copyright sections in gutenberg ebooks
-COPYRIGHT_START_SIGNAL = "*** END OF THIS PROJECT GUTENBERG EBOOK"
-BOOK_START_SIGNAL = "*** START OF THIS PROJECT GUTENBERG EBOOK"
+COPYRIGHT_START = 18058
+BOOK_START = 783
 
 
 def create_app(test_config=None):
@@ -60,7 +60,7 @@ def find_text(books, target_author):
 
             name_is_match = True
             for name in target_author.split():
-                name_is_match = name_is_match and (name.casefold() in curr_book_author["name"].casefold())
+                name_is_match = name_is_match and (name.casefold() in curr_book_author["name"].casefold()) and len(target_author.split()) 
             book_is_match = name_is_match
 
         # get book's text
@@ -74,9 +74,9 @@ def find_text(books, target_author):
                 elif 'text/plain; charset=utf-8' in book['formats']:
                     b += requests.get(book["formats"]['text/plain; charset=us-ascii']).content.decode("utf-8", "ignore")
 
-                # clean up data
                 if b != "":
-                    response += b[b.find(BOOK_START_SIGNAL):b.find(COPYRIGHT_START_SIGNAL)]
+                    b = b[BOOK_START:len(b) - COPYRIGHT_START]
+                    response += b
         except:
             pass # when text grabs fail, just keep going
 
