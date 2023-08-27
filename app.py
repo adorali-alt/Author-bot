@@ -75,7 +75,7 @@ def find_text(books, target_author):
                     b += requests.get(book["formats"]['text/plain; charset=us-ascii']).content.decode("utf-8", "ignore")
 
                 # clean up data
-                if b is not "":
+                if b != "":
                     response += b[b.find(BOOK_START_SIGNAL):b.find(COPYRIGHT_START_SIGNAL)]
         except:
             pass # when text grabs fail, just keep going
