@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-mypackage = "*"
+mypackage = "==0.1"
 blinker = "==1.6.2"
 certifi = "==2023.7.22"
 charset-normalizer = "==3.2.0"
@@ -24,6 +24,12 @@ unidecode = "==1.3.6"
 urllib3 = "==2.0.4"
 virtualenv = "==20.24.3"
 werkzeug = "==2.3.7"
+attrs = "==23.1.0"
+cmd2 = "==2.4.3"
+gunicorn = "==21.2.0"
+packaging = "==23.1"
+pyperclip = "==1.8.2"
+wcwidth = "==0.2.6"
 
 [dev-packages]
 
