@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
+    
     <title>{% block name %}{% endblock %}-Bot</title>
 
     <!-- Bootstrap for styling -->
@@ -12,18 +13,19 @@
 </head>
 
 <body class="container">
+
 <header>
     {% block header %}{% endblock %}
 </header>
 
 <div class="content">
 
-    <p class="instruc"> Instructions: Enter an author whose work is on Project Gutenberg. For best results, use their full name, exact spelling, and choose someone from the turn of the century or before, such as Homer or Leo Tolstoy. I will use a Markov model to generate a nonsense paragraph with your author's rhythm and word choice. Loading may take a couple seconds.
+    <p class="instruc"> Instructions: Enter an author whose work is on Project Gutenberg. For best results, use their full name, exact spelling, and choose someone from the turn of the century or before, such as Homer or Leo Tolstoy. I will use a Markov model to generate text with your author's rhythm and word choice. Loading may take a couple seconds.
     </p>
 
     <!-- author submission form -->
     <form method="POST">
-        <input name="name" id="name" required>
+        <input name="name" id="name" class="name" required>
         <input id="button" type="submit" value="speak">
     </form>
 
@@ -33,6 +35,25 @@
     <div class="message-from-author">{% block content %}{% endblock %}</div>
 
     <div class="line"></div>
+
+    <script type="text/javascript">
+
+
+    function runPyScript(){
+        authorName = document.getElementsByClassName('name')["value"];
+        return $.ajax({
+          url: "/",
+          type: "POST",
+          data: { name: authorName },
+          async: false
+        });
+    }
+
+    $('#button').click(function(){
+        runPyScript();     
+    });
+
+    </script>
 
 </div>
 

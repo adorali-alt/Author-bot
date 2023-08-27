@@ -6,7 +6,7 @@ import json
 import random
 import time
 from flask import (
-    Flask, Blueprint, flash, render_template, request
+    Flask, Blueprint, flash, render_template, request, make_response, jsonify
 )
 
 bp = Blueprint('generate', __name__, url_prefix='/')
@@ -83,6 +83,7 @@ def getFromLearningModel():
     if request.method == 'POST' and request.form['name'] is not None:
         # replace spaces with url encoded version
         author_name = request.form['name']
+        print(author_name)
         query = author_name.lower().replace(' ', '%20')
         # fetch book list
         try:
@@ -104,10 +105,17 @@ def getFromLearningModel():
                 # terminates run on sentences 
                 speech += " " + text_model.make_short_sentence(400)
 
+            print(speech)
+
         except:
             speech += "I can't read anything from "+author_name+". Try someone else, or perhaps check the spelling."
 
+    # result = '{"authorName": '+author_name.title()+', "speech": '+speech+'}'
+    # resp = make_response(jsonify(result), 200)
+    # resp.headers['Content-Type'] = "application/json"
+    # print(resp)
     return render_template('empty.html', sample={"author_name": author_name.title(), "speech": speech})
-
+    # return render_template('base.html', message='') data=result, 
+ 
 
 app = create_app()
