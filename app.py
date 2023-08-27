@@ -17,8 +17,8 @@ GUT_URL_TEMPLATE = "http://gutendex.com/books?search="
 CORPUS_CHAR_LIMIT = 2000000
 
 # marks the beginning / end of copyright sections in gutenberg ebooks
-COPYRIGHT_START = 18058
-BOOK_START = 783
+COPYRIGHT_START = 17500
+BOOK_START = 790
 
 
 def create_app(test_config=None):
