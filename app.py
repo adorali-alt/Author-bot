@@ -1,10 +1,10 @@
 import os
-import markovify
 import requests
 import string
 import json
 import random
 import time
+import markovify
 from flask import (
     Flask, Blueprint, flash, render_template, request, make_response, jsonify
 )
