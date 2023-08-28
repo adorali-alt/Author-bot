@@ -14,11 +14,11 @@ bp = Blueprint('generate', __name__, url_prefix='/')
 GUT_URL_TEMPLATE = "http://gutendex.com/books?search="
 
 # prevents insane load times from prolific writers
-CORPUS_CHAR_LIMIT = 2000000
+CORPUS_CHAR_LIMIT = 200000
 
 # marks the beginning / end of copyright sections in gutenberg ebooks
-COPYRIGHT_START = 17500
-BOOK_START = 790
+COPYRIGHT_START = 19324
+BOOK_START = 800
 
 
 def create_app(test_config=None):
@@ -60,13 +60,15 @@ def find_text(books, target_author):
 
             name_is_match = True
             for name in target_author.split():
-                name_is_match = name_is_match and (name.casefold() in curr_book_author["name"].casefold()) and len(target_author.split()) 
+                matched_num_of_author_names = len(target_author.split()) == len(curr_book_author["name"].split())
+                name_is_match = name_is_match and (name.casefold() in curr_book_author["name"].casefold()) and matched_num_of_author_names
             book_is_match = name_is_match
 
         # get book's text
         try:
             if book_is_match and (book['media_type'] == "Text") and ("en" in book["languages"]):
                 b = ""
+                print(curr_book_author["name"])
                 if 'text/plain; charset=us-ascii' in book['formats']:
                     b += requests.get(book["formats"]['text/plain; charset=us-ascii']).content.decode("ascii", "ignore")
                 elif 'text/plain' in book['formats']: 
@@ -76,6 +78,7 @@ def find_text(books, target_author):
 
                 if b != "":
                     b = b[BOOK_START:len(b) - COPYRIGHT_START]
+                    print(b)
                     response += b
         except:
             pass # when text grabs fail, just keep going
@@ -107,7 +110,7 @@ def getFromLearningModel():
 
             text_model = markovify.Text(raw_text)
 
-            speech = ""
+            speech = author_name + ": ... "
 
             for i in range(7):
                 # we want to let the sentence end naturally according to the author's style, so this only 
@@ -115,7 +118,7 @@ def getFromLearningModel():
                 speech += " " + text_model.make_short_sentence(400)
 
         except:
-            speech += "I can't read anything from "+author_name+". Try someone else, or perhaps check the spelling."
+            speech = "... I can't read anything from "+author_name+". Try someone else, or perhaps check the spelling."
 
     return render_template('empty.html', sample={"author_name": author_name.title(), "speech": speech})
  
